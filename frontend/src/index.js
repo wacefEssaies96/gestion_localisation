@@ -15,6 +15,7 @@ const Recoverpw = React.lazy(() => import("./views/dashboard/auth/recoverpw"))
 const Resetpwd = React.lazy(() => import("./views/dashboard/auth/resetpwd"))
 const Error404 = React.lazy(() => import("./views/dashboard/errors/error404"))
 const SignIn = React.lazy(() => import("./views/dashboard/auth/sign-in"))
+const Dashboard = React.lazy(() => import("./views/dashboard/dashboard"))
 
 
 const router = createBrowserRouter([
@@ -33,6 +34,11 @@ const router = createBrowserRouter([
       {
         path: 'user-list',
         element: <UserList />
+      }
+      ,
+      {
+        path: 'dashboard',
+        element: <Dashboard />
       }
     ]
   },

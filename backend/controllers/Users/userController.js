@@ -1,6 +1,5 @@
 const User = require("../../models/Users/user");
 
-// Retrieve all users from the database.
 exports.findAllUsers = async (req, res) => {
   try {
     const users = await User.find();
@@ -13,7 +12,6 @@ exports.findAllUsers = async (req, res) => {
   }
 };
 
-// Create and Save a new user
 exports.createUser = async (req, res) => {
   try {
     const existingUser = await User.findOne({ email: req.body.email });
@@ -41,7 +39,6 @@ exports.createUser = async (req, res) => {
     });
   }
 };
-// Update a user by the id in the request
 exports.updateUser = async (req, res) => {
   if (!req.body) {
     return res.status(400).send({
@@ -58,7 +55,6 @@ exports.updateUser = async (req, res) => {
   }
 }
 
-// Delete a user with the specified id in the request
 exports.deleteUser = async (req, res) => {
   try {
     await User.findByIdAndRemove(req.params.id);
@@ -69,7 +65,6 @@ exports.deleteUser = async (req, res) => {
     });
   }
 };
-// Find a single user with an Email
 exports.findUserByEmail = async (req, res) => {
   const email = req.params.email;
   try {
@@ -83,7 +78,6 @@ exports.findUserByEmail = async (req, res) => {
   }
 };
 
-// Find a single user with an id
 exports.findUserById = async (req, res) => {
   const id = req.params.id;
   try {

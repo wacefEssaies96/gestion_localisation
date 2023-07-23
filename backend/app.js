@@ -3,11 +3,12 @@ const express = require('express');
 const path = require('path');
 const cookieParser = require('cookie-parser');
 const logger = require('morgan');
-const passport = require('passport');
 const http = require('http');
 require('dotenv').config();
 const mongoose = require('mongoose');
 const cors = require('cors');
+const { io } = require("./utils/socketjs");
+
 
 const usersRouter = require('./routes/Users/userRoutes');
 const urgenceRouter = require('./routes/urgence/urgence');
@@ -65,6 +66,5 @@ app.use(function (err, req, res, next) {
 app.set('port', 3030);
 var server = http.createServer(app);
 server.listen(3030);
-const { io } = require("./utils/socketjs");
 io.attach(server);
 module.exports = app;

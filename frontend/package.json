@@ -18,7 +18,7 @@
     "@react-google-maps/api": "^2.18.1",
     "@reduxjs/toolkit": "^1.8.1",
     "aos": "^2.3.4",
-    "apexcharts": "^3.33.0",
+    "apexcharts": "^3.41.0",
     "axios": "^1.4.0",
     "bootstrap": "^5.2.3",
     "choices.js": "^10.1.0",

@@ -1,7 +1,7 @@
 const Mongoose = require('mongoose');
 
 const urgenceSchema = new Mongoose.Schema({
-    longetude: Number,
+    longitude: Number,
     latitude: Number,
     type: String,
     taille: String,
@@ -14,7 +14,8 @@ const urgenceSchema = new Mongoose.Schema({
     status: String,
     tel: Number,
     communication: String,
-    police: String
+    police: String,
+    cloture: String
 }, { timestamps: true });
 
 module.exports = urgenceSchema;

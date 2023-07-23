@@ -6,10 +6,12 @@ const upload = multer({ dest: 'uploads/' })
 
 
 router.post("/create", controller.create);
-router.get("/find-urgence/:longetude/:latitude/", controller.findUrgence);
+router.get("/find-urgence/:longitude/:latitude/", controller.findUrgence);
 router.delete("/delete/:id", controller.delete);
 router.delete("/delete-all", controller.deleteAll);
 router.get("/find-all", controller.findAll);
-// router.get('/search', controller.searchArticle);
+router.get('/find-by-month', controller.findNbrMonthly);
+router.get('/find-by-day', controller.findNbrDaily);
+
 
 module.exports = router;

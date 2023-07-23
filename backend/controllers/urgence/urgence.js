@@ -1,13 +1,11 @@
 const Urgence = require('../../models/urgence/urgence');
-const { Socket, io, triggerEmitEvent } = require('../../utils/socketjs');
+const { Socket } = require('../../utils/socketjs');
 
 exports.create = async (req, res) => {
-    let response = await Urgence.findOne({ latitude: req.body.latitude, longetude: req.body.longetude })
-    // res.send({response: response})
-    if (response == null) {
-        // Create a article
+    const response = await Urgence.findOne({ latitude: req.body.latitude, longitude: req.body.longitude })
+    if (response === null) {
         const newUrgence = new Urgence({
-            longetude: req.body.longetude,
+            longitude: req.body.longitude,
             latitude: req.body.latitude,
             type: req.body.type,
             taille: req.body.taille,
@@ -20,11 +18,12 @@ exports.create = async (req, res) => {
             status: req.body.status,
             tel: req.body.tel,
             communication: req.body.communication,
-            police: req.body.police
+            police: req.body.police,
+            cloture: 'false'
         });
         newUrgence.save()
             .then((urgence) => {
-                triggerEmitEvent('notification', {
+                Socket.emit('notification', {
                     urgence
                 });
                 res.send({ message: "Urgence was created successfully.", urgence })
@@ -43,7 +42,7 @@ exports.create = async (req, res) => {
                         message: `Cannot update with id=${response._id}. Maybe was not found!`
                     });
                 } else {
-                    triggerEmitEvent('refresh', { data: data });
+                    Socket.emit('refresh', { data: data });
                     res.send({ message: "Urgence was updated successfully." });
                 }
             })
@@ -57,24 +56,26 @@ exports.create = async (req, res) => {
 
 }
 
-exports.findAll = (req, res) => {
-    Urgence.find()
-        .then(data => {
-            res.send(data);
-            return;
-        })
-        .catch(err => {
-            res.status(500).send({
-                message: err.message || "Some error occurred while fetching data."
-            });
-        })
+exports.findAll = async (req, res) => {
+    const { depart, niveau, status, cloture } = req.query
+    try {
+        const query = {};
+        if (depart) query.depart = new RegExp(depart, 'i');
+        if (niveau) query.niveau = niveau;
+        if (status) query.status = new RegExp(status, 'i');
+        if (cloture) query.cloture = cloture;
+        const urgences = await Urgence.find(query);
+        res.send(urgences)
+    } catch (err) {
+        res.status(500).send({ message: err.message })
+    }
 }
 
 exports.findUrgence = (req, res) => {
     const latitude = req.params.latitude;
-    const longetude = req.params.longetude;
+    const longitude = req.params.longitude;
 
-    Urgence.findOne({ latitude: latitude, longetude: longetude })
+    Urgence.findOne({ latitude: latitude, longitude: longitude })
         .then(
             data => {
                 res.send(data);
@@ -87,29 +88,6 @@ exports.findUrgence = (req, res) => {
         })
 }
 
-
-// exports.searchArticle = async (req, res) => {
-//     const { query, page, limit = 10 } = req.query
-//     const options = {
-//         page,
-//         limit,
-//         collation: {
-//             locale: 'en'
-//         }
-//     }
-//     const regexQuery = new RegExp(query, 'i')
-//     try {
-//         const articles = await Article.paginate(
-//             { title: regexQuery, status: 'published' },
-//             options
-//         )
-//         res.json(articles)
-//     } catch (err) {
-//         res.status(500).json({ message: err.message })
-//     }
-// }
-
-// Delete a article with the specified id in the request
 exports.delete = (req, res) => {
     const id = req.params.id;
     Urgence.findByIdAndRemove(id)
@@ -131,7 +109,6 @@ exports.delete = (req, res) => {
         });
 };
 
-// Delete all articles from the database.
 exports.deleteAll = (req, res) => {
     Urgence.deleteMany()
         .then(async (data) => {
@@ -143,6 +120,78 @@ exports.deleteAll = (req, res) => {
             });
         });
 };
+
+exports.findNbrMonthly = async (req, res) => {
+    const months = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+    let data = []
+    for (let index = 0; index < months.length; index++) {
+        const response = await Urgence.find({
+            $expr: {
+                $eq: [
+                    { $month: "$createdAt" }, months[index]
+                ]
+            }
+        })
+        data.push(response.length)
+    }
+    res.send({ message: data })
+};
+
+exports.findNbrDaily = async (req, res) => {
+    const d = new Date();
+    const year = d.getFullYear();
+    const month = d.getMonth() + 1;
+    const daysInMonth = getDaysInMonth(year, month);
+    let tabDays = []
+    for (let index = 0; index < daysInMonth; index++) {
+        tabDays.push(index + 1)
+    }
+    let data = []
+    for (let index = 0; index < tabDays.length; index++) {
+        const targetDate = new Date(`${year}-${month}-${tabDays[index]}`);
+        const response = await Urgence.find({
+            $expr: {
+                $eq: [
+                    { $dateToString: { format: "%Y-%m-%d", date: "$createdAt" } },
+                    { $dateToString: { format: "%Y-%m-%d", date: targetDate } }
+                ]
+            }
+        })
+        if (response.length > 0) {
+            data.push(response.length)
+        }
+        else {
+            data.push(0)
+        }
+    }
+    res.send({
+        days: tabDays,
+        data: data
+    })
+};
+
+exports.findByRegion = async (req, res) => {
+    const months = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+    let data = []
+    for (let index = 0; index < months.length; index++) {
+        const response = await Urgence.find({})
+        data.push(response.length)
+    }
+    res.send({ message: data })
+}
+
+function getDaysInMonth(year, month) {
+    // JavaScript months are zero-based (0 - January to 11 - December)
+    // So, we subtract 1 from the provided month to get the correct month index.
+    const date = new Date(year, month - 1, 1);
+
+    // Move to the next month and subtract 1 day to get the last day of the provided month.
+    date.setMonth(date.getMonth() + 1);
+    date.setDate(date.getDate() - 1);
+
+    // Return the day of the last date, which represents the number of days in the month.
+    return date.getDate();
+}
 
 
 

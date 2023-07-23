@@ -1,0 +1,55 @@
+version: '3.7'
+
+services:
+  server:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    image: seasos-server
+    container_name: seasos-node-server
+    command: npm start
+    volumes:
+      - ./backend/:/usr/src/app
+      - /usr/src/app/node_modules
+    ports:
+      - "3030:3030"
+    depends_on:
+      - mongo
+    environment:
+      - NODE_ENV=development
+    networks:
+      - app-network
+  mongo:
+    image: mongo
+    volumes:
+      - data-volume:/data/db
+    ports:
+      - "27017:27017"
+    networks:
+      - app-network
+  client:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    image: seasos-client
+    container_name: seasos-react-client
+    command: npm start
+    volumes:
+      - ./frontend/:/usr/app
+      - /usr/app/node_modules
+    depends_on:
+      - server
+    ports:
+      - "3000:3000"
+    networks:
+      - app-network
+
+networks:
+    app-network:
+        driver: bridge
+
+volumes:
+    data-volume:
+    node_modules:
+    web-root:
+      driver: local
