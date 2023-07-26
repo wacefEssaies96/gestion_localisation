@@ -1,5 +1,13 @@
 const Urgence = require('../../models/urgence/urgence');
 const { Socket } = require('../../utils/socketjs');
+const pointInPolygon = require('point-in-polygon')
+const turf = require('@turf/turf');
+
+const { bizerteTunisCoordinates,
+    tunisMonastirCoordinates,
+    monastirGabesCoordinates,
+    gabesZerzisCoordinates,
+    tabarkaBizerteCoordinates } = require('../../utils/polygonData')
 
 exports.create = async (req, res) => {
     const response = await Urgence.findOne({ latitude: req.body.latitude, longitude: req.body.longitude })
@@ -124,6 +132,8 @@ exports.deleteAll = (req, res) => {
 exports.findNbrMonthly = async (req, res) => {
     const months = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
     let data = []
+    let enclosed = []
+    let notEnclosed = []
     for (let index = 0; index < months.length; index++) {
         const response = await Urgence.find({
             $expr: {
@@ -132,9 +142,18 @@ exports.findNbrMonthly = async (req, res) => {
                 ]
             }
         })
+        const counters = calculateEnclosed(response)
+        notEnclosed.push(counters.counterNotEnclosed)
+        enclosed.push(counters.counterEnclosed);
         data.push(response.length)
     }
-    res.send({ message: data })
+    res.send(
+        {
+            data: data,
+            enclosed: enclosed,
+            notEnclosed: notEnclosed
+        }
+    )
 };
 
 exports.findNbrDaily = async (req, res) => {
@@ -147,6 +166,8 @@ exports.findNbrDaily = async (req, res) => {
         tabDays.push(index + 1)
     }
     let data = []
+    let enclosed = []
+    let notEnclosed = []
     for (let index = 0; index < tabDays.length; index++) {
         const targetDate = new Date(`${year}-${month}-${tabDays[index]}`);
         const response = await Urgence.find({
@@ -163,22 +184,93 @@ exports.findNbrDaily = async (req, res) => {
         else {
             data.push(0)
         }
+        const counters = calculateEnclosed(response)
+        notEnclosed.push(counters.counterNotEnclosed)
+        enclosed.push(counters.counterEnclosed);
     }
     res.send({
         days: tabDays,
-        data: data
+        data: data,
+        enclosed: enclosed,
+        notEnclosed: notEnclosed
     })
 };
 
 exports.findByRegion = async (req, res) => {
-    const months = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
-    let data = []
-    for (let index = 0; index < months.length; index++) {
-        const response = await Urgence.find({})
-        data.push(response.length)
+    const response = await Urgence.find()
+    let region = ""
+    let tabarka = 0
+    let capBon = 0
+    let monastir = 0
+    let gabes = 0
+    let zarzis = 0
+    const polygontabarka = turf.polygon(tabarkaBizerteCoordinates);
+    const polygoncapbon = turf.polygon(bizerteTunisCoordinates);
+    const polygonmonastir = turf.polygon(tunisMonastirCoordinates);
+    const polygongabes = turf.polygon(monastirGabesCoordinates);
+    const polygonzarzis = turf.polygon(gabesZerzisCoordinates);
+
+    for (let index = 0; index < response.length; index++) {
+        const element = response[index];
+        const point = turf.point([element.longitude, element.latitude]);
+        if (turf.booleanPointInPolygon(point, polygontabarka)) {
+            tabarka += 1
+            region = 'Tabarka - Bizerte'
+            break
+        }
+        if (turf.booleanPointInPolygon(point, polygoncapbon)) {
+            capBon += 1
+            region = 'Bizerte - Cap bon'
+            break
+        }
+        if (turf.booleanPointInPolygon(point, polygonmonastir)) {
+            monastir += 1
+            region = 'Cap bon - Monastir'
+            break
+        }
+        if (turf.booleanPointInPolygon(point, polygongabes)) {
+            gabes += 1
+            region = 'Monastir - Gabes'
+            break
+        }
+        if (turf.booleanPointInPolygon(point, polygonzarzis)) {
+            zarzis++
+            region = 'Gabes - zarzis'
+            break
+        }
     }
-    res.send({ message: data })
+    res.send({
+        data: {
+            tabarka: tabarka,
+            capBon: capBon,
+            monastir: monastir,
+            gabes: gabes,
+            zarzis: zarzis,
+        }
+    })
 }
+
+function isPointInsidePolygon(targetCoordinates, polygonCoordinates) {
+    const [lat, lng] = targetCoordinates;
+    let isInside = false;
+
+    for (let i = 0, j = polygonCoordinates.length - 1; i < polygonCoordinates.length; j = i++) {
+        const xi = polygonCoordinates[i][0];
+        const yi = polygonCoordinates[i][1];
+        const xj = polygonCoordinates[j][0];
+        const yj = polygonCoordinates[j][1];
+
+        const intersect =
+            yi > lat !== yj > lat &&
+            lng < ((xj - xi) * (lat - yi)) / (yj - yi) + xi;
+
+        if (intersect) {
+            isInside = !isInside;
+        }
+    }
+
+    return isInside;
+};
 
 function getDaysInMonth(year, month) {
     // JavaScript months are zero-based (0 - January to 11 - December)
@@ -191,6 +283,15 @@ function getDaysInMonth(year, month) {
 
     // Return the day of the last date, which represents the number of days in the month.
     return date.getDate();
+}
+
+function calculateEnclosed(data) {
+    let counterEnclosed = 0
+    let counterNotEnclosed = 0
+    for (let jindex = 0; jindex < data.length; jindex++) {
+        (data[jindex] && data[jindex].cloture === 'false') ? counterEnclosed += 1 : counterNotEnclosed += 1
+    }
+    return { counterEnclosed: counterEnclosed, counterNotEnclosed: counterNotEnclosed }
 }
 
 

@@ -16,7 +16,6 @@ function LocationMarkers({ refresh, markers, setMarkers }) {
 
     const [show, setShow] = useState(false);
     const [urgence, setUrgence] = useState({});
-    // const [markers, setMarkers] = useState([]);
 
     const handleClose = () => setShow(false);
     const handleShow = async (latlng) => {
@@ -43,14 +42,10 @@ function LocationMarkers({ refresh, markers, setMarkers }) {
 
     useEffect(() => {
         const socket = io.connect(`${global.config.BACKEND_URL}`)
-        // axios.get(url)
-        //     .then((response) => {
-        //         response.data.map(item => setMarkers((prevValue) => [...prevValue, [item.longitude, item.latitude]]))
-        //     })
         socket.on('notification', (data) => {
             markers.push([data.urgence.longitude, data.urgence.latitude])
             setMarkers((prevValue) => [...prevValue, [data.urgence.longitude, data.urgence.latitude]]);
-            L.circle([data.urgence.longitude, data.urgence.latitude], { radius: 7000, color: "red" },).addTo(map);
+            L.circle([data.urgence.longitude, data.urgence.latitude], { radius: 5000, color: "red" },).addTo(map);
             refresh()
         });
 
@@ -245,7 +240,7 @@ const Google = () => {
                                                 <tr>
                                                     <th scope="col">Lng & lat</th>
                                                     <th scope="col">Type</th>
-                                                    <th scope="col">Niveau</th>
+                                                    <th scope="col">Level</th>
                                                     <th scope="col">Status</th>
                                                 </tr>
                                             </thead>
@@ -259,18 +254,6 @@ const Google = () => {
                                                     </tr>
                                                 ))
                                                 }
-
-
-                                                {/* <tr className="table-danger">
-                                            <th scope="row">Danger</th>
-                                            <td>Cell</td>
-                                            <td>Cell</td>
-                                        </tr>
-                                        <tr className="table-warning">
-                                            <th scope="row">Warning</th>
-                                            <td>Cell</td>
-                                            <td>Cell</td>
-                                        </tr> */}
                                             </tbody>
                                         </Table>
                                     </div>
@@ -288,7 +271,7 @@ const Google = () => {
                                     <div>
                                         <div className='row filter'>
                                             <div className='col-sm-4'>
-                                                <label>Starting point:</label>
+                                                <label>Emergency starting point:</label>
                                             </div>
                                             <div className='col-sm-8'>
                                                 <Dropdown as={ButtonGroup} style={{ float: 'right' }}>
@@ -311,7 +294,7 @@ const Google = () => {
                                         </div>
                                         <div className='row filter'>
                                             <div className='col-sm-4'>
-                                                <label>Status : </label>
+                                                <label>SOS Status : </label>
                                             </div>
                                             <div className='col-sm-8'>
                                                 <Dropdown as={ButtonGroup} style={{ float: 'right' }}>
@@ -333,12 +316,12 @@ const Google = () => {
                                         </div>
                                         <div className='row filter'>
                                             <div className='col-sm-4'>
-                                                <label>Niveau : </label>
+                                                <label>Emergency level : </label>
                                             </div>
                                             <div className='col-sm-8'>
                                                 <Dropdown as={ButtonGroup} style={{ float: 'right' }}>
                                                     <Button type="button" variant="warning">
-                                                        {selectedNiveau === null ? 'Niveau' : selectedNiveau}
+                                                        {selectedNiveau === null ? 'Level' : selectedNiveau}
                                                     </Button>
                                                     <Dropdown.Toggle as={Button} split type="button" variant="warning">
                                                         <span className="visually-hidden">Toggle Dropdown</span>
@@ -354,16 +337,17 @@ const Google = () => {
                                             </div>
                                         </div>
                                         <div className='row filter'>
-                                            <div className='col-sm-4'>
+                                            <div className='col-sm-6'>
                                                 <label>Enclose</label>
                                             </div>
-                                            <div style={{ float: 'right' }} className=" col-sm-8 form-check form-switch form-check-inline">
-                                                {enclosed === 'All' ? <label>All</label>
-                                                    : enclosed === true ? <label>Not enclosed</label> : <label>Enclosed</label>
-                                                }
+                                            <div  className="col-sm-5 form-check form-switch form-check-inline">
+                                               
                                                 <FormCheck.Input onChange={() => {
                                                     setEnclosed(!enclosed)
                                                 }} type="checkbox" id="switch" />
+                                                 {enclosed === 'All' ? <label>All</label>
+                                                    : enclosed === true ? <label>Not enclosed</label> : <label>Enclosed</label>
+                                                }
                                             </div>
                                         </div>
 
