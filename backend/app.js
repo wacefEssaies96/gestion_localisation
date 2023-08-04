@@ -19,7 +19,7 @@ const resetPassword = require('./routes/resetPasswordRoute');
 
 var app = express();
 
-app.use(cors({ origin: 'http://localhost:3000', credentials: true }));
+app.use(cors({ origin: 'http://vps-d7947b56.vps.ovh.net', credentials: true }));
 app.enable('trust proxy');
 
 app.use(logger('dev'));

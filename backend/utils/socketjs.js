@@ -2,7 +2,7 @@ const { Server } = require("socket.io");
 // New Web Socket server
 const io = new Server({
     cors: {
-        origin: "http://localhost:3000",
+        origin: "http://vps-d7947b56.vps.ovh.net",
         methods: ["GET", "POST"]
     }
 });

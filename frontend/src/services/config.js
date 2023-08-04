@@ -1,3 +1,3 @@
 export default global.config = {
-    BACKEND_URL: "http://localhost:3030"
+    BACKEND_URL: "http://vps-d7947b56.vps.ovh.net"
 };
