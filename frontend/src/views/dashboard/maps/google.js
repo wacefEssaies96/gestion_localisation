@@ -7,6 +7,7 @@ import '../../../../node_modules/leaflet/dist/leaflet.css'
 import L from 'leaflet';
 import icon from '../../../assets/images/vectormap/marker1.png';
 // import iconShadow from 'leaflet/dist/images/marker-shadow.png';
+import globalConfig from '../../../services/config'
 import axios from 'axios'
 import './map-style.css'
 import '../../../services/config';
@@ -25,10 +26,10 @@ function LocationMarkers({ refresh, markers, setMarkers }) {
 
     const refreshData = async (latlng) => {
         if (latlng.hasOwnProperty("lat") && latlng.hasOwnProperty("lng")) {
-            const response = await axios.get(`${global.config.BACKEND_URL}/api/urgences/find-urgence/${latlng.lat}/${latlng.lng}`)
+            const response = await axios.get(`${globalConfig.BACKEND_URL}/api/urgences/find-urgence/${latlng.lat}/${latlng.lng}`)
             setUrgence(response.data)
         } else {
-            const response = await axios.get(`${global.config.BACKEND_URL}/api/urgences/find-urgence/${latlng.longitude}/${latlng.latitude}`)
+            const response = await axios.get(`${globalConfig.BACKEND_URL}/api/urgences/find-urgence/${latlng.longitude}/${latlng.latitude}`)
             setUrgence(response.data)
         }
 
@@ -41,7 +42,7 @@ function LocationMarkers({ refresh, markers, setMarkers }) {
     L.Marker.prototype.options.icon = DefaultIcon;
 
     useEffect(() => {
-        const socket = io.connect(`${global.config.BACKEND_URL}`)
+        const socket = io.connect(`${globalConfig.BACKEND_URL}`)
         socket.on('notification', (data) => {
             markers.push([data.urgence.longitude, data.urgence.latitude])
             setMarkers((prevValue) => [...prevValue, [data.urgence.longitude, data.urgence.latitude]]);
@@ -66,11 +67,11 @@ function LocationMarkers({ refresh, markers, setMarkers }) {
                     <div style={{ display: "flex", justifyContent: 'space-evenly' }}>
                         <div>
                             <div style={{ backgroundColor: "lightgrey", width: "fit-content", padding: '10px' }}>
-                                <h3>Longitude</h3>
+                                <h3>Latitude</h3>
                                 {urgence.hasOwnProperty('longitude') &&
                                     <h5>{urgence.longitude}</h5>
                                 }
-                                <h3>Latitude</h3>
+                                <h3>Longitude</h3>
                                 {urgence.hasOwnProperty('latitude') &&
                                     <h5>{urgence.latitude}</h5>
                                 }
@@ -134,8 +135,6 @@ function LocationMarkers({ refresh, markers, setMarkers }) {
                             <p>{urgence.police}</p>
                         </div>
                     </div>
-
-
                 </Modal.Body>
                 <Modal.Footer variant="secondary">
                     <Form.Group>
@@ -188,7 +187,7 @@ const Google = () => {
         if (selectedNiveau && selectedNiveau !== "All")
             params.set('niveau', selectedNiveau);
 
-        axios.get(`${global.config.BACKEND_URL}/api/urgences/find-all?${params.toString()}`)
+        axios.get(`${globalConfig.BACKEND_URL}/api/urgences/find-all?${params.toString()}`)
             .then((response) => {
                 setUrgences(response.data)
                 setMarkers([])

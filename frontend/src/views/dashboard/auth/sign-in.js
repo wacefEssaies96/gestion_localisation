@@ -5,6 +5,7 @@ import Card from '../../../components/Card'
 import axios from 'axios'
 import Logo from '../../../components/partials/components/logo'
 import { errorAlert } from '../../../services/alerts'
+import globalConfig from '../../../services/config'
 import '../../../services/config'
 import 'lazysizes';
 
@@ -18,7 +19,7 @@ const SignIn = () => {
       e.preventDefault();
       try {
          const { data } = await axios.post(
-            global.config.BACKEND_URL + "/api/auth/login",
+            globalConfig.BACKEND_URL + "/api/auth/login",
             {
                email: e.target.email.value,
                password: e.target.password.value

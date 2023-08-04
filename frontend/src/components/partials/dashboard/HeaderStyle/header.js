@@ -21,6 +21,7 @@ import { useSelector } from 'react-redux';
 // Import selectors & action from setting store
 import * as SettingSelector from '../../../../store/setting/selectors'
 import axios from 'axios';
+import { verifyUser } from '../../../../services/user';
 
 const Header = memo((props) => {
     const navigate = useNavigate();
@@ -45,11 +46,7 @@ const Header = memo((props) => {
             if (!cookies.token) {
                 navigate("/auth/sign-in");
             }
-            const { data } = await axios.post(
-                "http://localhost:3030/api/auth",
-                {},
-                { withCredentials: true }
-            );
+            const { data } = await verifyUser()
             const { status, user } = data;
             setUsername(user);
             if (!status) {

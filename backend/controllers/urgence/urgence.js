@@ -7,11 +7,12 @@ const { bizerteTunisCoordinates,
     tunisMonastirCoordinates,
     monastirGabesCoordinates,
     gabesZerzisCoordinates,
-    tabarkaBizerteCoordinates } = require('../../utils/polygonData')
+    tabarkaBizerteCoordinates,
+    tabarkacapbonCoordinates } = require('../../utils/polygonData') // coords of areas
 
 exports.create = async (req, res) => {
-    const response = await Urgence.findOne({ latitude: req.body.latitude, longitude: req.body.longitude })
-    if (response === null) {
+    const response = await Urgence.findOne({ latitude: req.body.latitude, longitude: req.body.longitude }) // retrieve emergencie by coords
+    if (response === null) { // if not found we create new emergencie
         const newUrgence = new Urgence({
             longitude: req.body.longitude,
             latitude: req.body.latitude,
@@ -34,7 +35,7 @@ exports.create = async (req, res) => {
                 Socket.emit('notification', {
                     urgence
                 });
-                res.send({ message: "Urgence was created successfully.", urgence })
+                res.send({ message: "Emergency was created successfully.", urgence })
 
             })
             .catch(err => {
@@ -42,28 +43,26 @@ exports.create = async (req, res) => {
                     message: err.message || "Some error occurred."
                 });
             });
-    } else {
+    } else { // if we retrieve the emergencie we simply update it
         Urgence.findByIdAndUpdate(response._id, req.body, { useFindAndModify: false })
             .then(data => {
                 if (!data) {
                     res.status(404).send({
-                        message: `Cannot update with id=${response._id}. Maybe was not found!`
+                        message: `Cannot update with id=${response._id}. Maybe it was not found!`
                     });
                 } else {
                     Socket.emit('refresh', { data: data });
-                    res.send({ message: "Urgence was updated successfully." });
+                    res.send({ message: "Emergency was updated successfully." });
                 }
             })
             .catch(err => {
                 res.status(500).send({
-                    message: "Error updating urgence with id=" + response._id + " " + err
+                    message: "Error updating emergency with id=" + response._id + " " + err
                 });
             });
     }
-
-
 }
-
+// retrive all emergencies with filters
 exports.findAll = async (req, res) => {
     const { depart, niveau, status, cloture } = req.query
     try {
@@ -78,7 +77,7 @@ exports.findAll = async (req, res) => {
         res.status(500).send({ message: err.message })
     }
 }
-
+// retrieve emergency by coords
 exports.findUrgence = (req, res) => {
     const latitude = req.params.latitude;
     const longitude = req.params.longitude;
@@ -102,17 +101,17 @@ exports.delete = (req, res) => {
         .then(async (data) => {
             if (!data) {
                 res.status(404).send({
-                    message: `Cannot delete Urgence with id=${id}. Maybe Urgence was not found!`
+                    message: `Cannot delete emergency with id=${id}. Maybe it was not found!`
                 });
             } else {
                 res.send({
-                    message: "Urgence was deleted successfully!"
+                    message: "Emergency was deleted successfully!"
                 });
             }
         })
         .catch(err => {
             res.status(500).send({
-                message: "Could not delete Urgence with id=" + id
+                message: "Could not delete emergency with id=" + id
             });
         });
 };
@@ -120,21 +119,21 @@ exports.delete = (req, res) => {
 exports.deleteAll = (req, res) => {
     Urgence.deleteMany()
         .then(async (data) => {
-            res.send({ message: `${data.deletedCount} Urgence(s) were deleted successfully!` });
+            res.send({ message: `${data.deletedCount} Emergency(ies) were deleted successfully!` });
         })
         .catch(err => {
             res.status(500).send({
-                message: err.message || "Some error occurred while removing all urgences."
+                message: err.message || "Some error occurred while removing all emergencies."
             });
         });
 };
-
+// Retreive emergencies monthly
 exports.findNbrMonthly = async (req, res) => {
-    const months = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+    const months = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12] //Months
     let data = []
     let enclosed = []
     let notEnclosed = []
-    for (let index = 0; index < months.length; index++) {
+    for (let index = 0; index < months.length; index++) { // retriving every emergencies per month
         const response = await Urgence.find({
             $expr: {
                 $eq: [
@@ -142,7 +141,7 @@ exports.findNbrMonthly = async (req, res) => {
                 ]
             }
         })
-        const counters = calculateEnclosed(response)
+        const counters = calculateEnclosed(response) // calculating how many is enclosed and not enclosed
         notEnclosed.push(counters.counterNotEnclosed)
         enclosed.push(counters.counterEnclosed);
         data.push(response.length)
@@ -157,18 +156,18 @@ exports.findNbrMonthly = async (req, res) => {
 };
 
 exports.findNbrDaily = async (req, res) => {
-    const d = new Date();
-    const year = d.getFullYear();
-    const month = d.getMonth() + 1;
-    const daysInMonth = getDaysInMonth(year, month);
+    const d = new Date(); // actual date
+    const year = d.getFullYear(); // retrieve the actual year
+    const month = d.getMonth() + 1; // retrieve the actual month
+    const daysInMonth = getDaysInMonth(year, month); // retrieving how many days in this actual month in the year
     let tabDays = []
-    for (let index = 0; index < daysInMonth; index++) {
+    for (let index = 0; index < daysInMonth; index++) { // filling an array with number of days
         tabDays.push(index + 1)
     }
     let data = []
     let enclosed = []
     let notEnclosed = []
-    for (let index = 0; index < tabDays.length; index++) {
+    for (let index = 0; index < tabDays.length; index++) { // retrieving emergencies per day
         const targetDate = new Date(`${year}-${month}-${tabDays[index]}`);
         const response = await Urgence.find({
             $expr: {
@@ -204,37 +203,31 @@ exports.findByRegion = async (req, res) => {
     let monastir = 0
     let gabes = 0
     let zarzis = 0
-    const polygontabarka = turf.polygon(tabarkaBizerteCoordinates);
-    const polygoncapbon = turf.polygon(bizerteTunisCoordinates);
-    const polygonmonastir = turf.polygon(tunisMonastirCoordinates);
-    const polygongabes = turf.polygon(monastirGabesCoordinates);
-    const polygonzarzis = turf.polygon(gabesZerzisCoordinates);
+    const polygontabarka = turf.polygon(tabarkacapbonCoordinates);
+    const polygoncapbon = turf.polygon(tunisMonastirCoordinates);
+    const polygonmonastir = turf.polygon(monastirGabesCoordinates);
+    const polygongabes = turf.polygon(gabesZerzisCoordinates);
 
     for (let index = 0; index < response.length; index++) {
         const element = response[index];
         const point = turf.point([element.longitude, element.latitude]);
         if (turf.booleanPointInPolygon(point, polygontabarka)) {
             tabarka += 1
-            region = 'Tabarka - Bizerte'
+            region = 'Tabarka - Cap con'
             break
         }
         if (turf.booleanPointInPolygon(point, polygoncapbon)) {
             capBon += 1
-            region = 'Bizerte - Cap bon'
+            region = 'Cap bon - Monastir'
             break
         }
         if (turf.booleanPointInPolygon(point, polygonmonastir)) {
             monastir += 1
-            region = 'Cap bon - Monastir'
-            break
-        }
-        if (turf.booleanPointInPolygon(point, polygongabes)) {
-            gabes += 1
             region = 'Monastir - Gabes'
             break
         }
-        if (turf.booleanPointInPolygon(point, polygonzarzis)) {
-            zarzis++
+        if (turf.booleanPointInPolygon(point, polygongabes)) {
+            gabes++
             region = 'Gabes - zarzis'
             break
         }
@@ -244,33 +237,27 @@ exports.findByRegion = async (req, res) => {
             tabarka: tabarka,
             capBon: capBon,
             monastir: monastir,
-            gabes: gabes,
-            zarzis: zarzis,
+            gabes: gabes
         }
     })
 }
 
-function isPointInsidePolygon(targetCoordinates, polygonCoordinates) {
-    const [lat, lng] = targetCoordinates;
-    let isInside = false;
+exports.isInRegion = async (req, res) => {
+    const point = turf.point([req.body.longitude, req.body.latitude]);
+    const polygons = [
+        turf.polygon(tabarkacapbonCoordinates),
+        turf.polygon(tunisMonastirCoordinates),
+        turf.polygon(monastirGabesCoordinates),
+        turf.polygon(gabesZerzisCoordinates)
+    ];
 
-    for (let i = 0, j = polygonCoordinates.length - 1; i < polygonCoordinates.length; j = i++) {
-        const xi = polygonCoordinates[i][0];
-        const yi = polygonCoordinates[i][1];
-        const xj = polygonCoordinates[j][0];
-        const yj = polygonCoordinates[j][1];
-
-        const intersect =
-            yi > lat !== yj > lat &&
-            lng < ((xj - xi) * (lat - yi)) / (yj - yi) + xi;
-
-        if (intersect) {
-            isInside = !isInside;
-        }
+    if (polygons.some(polygon => turf.booleanPointInPolygon(point, polygon))) {
+        return res.send(true);
     }
 
-    return isInside;
-};
+    return res.send(false);
+
+}
 
 function getDaysInMonth(year, month) {
     // JavaScript months are zero-based (0 - January to 11 - December)

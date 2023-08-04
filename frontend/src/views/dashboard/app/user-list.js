@@ -5,6 +5,7 @@ import Card from '../../../components/Card'
 import { confirmDelete } from '../../../services/alerts'
 import '../../../services/config'
 import { fetchData } from '../../../services/mix'
+import globalConfig from '../../../services/config'
 const UserForm = React.lazy(() => import('./user-add'))
 
 const UserList = () => {
@@ -23,7 +24,7 @@ const UserList = () => {
    const [userlist, setUserlist] = useState([]);
    const [mode, setMode] = useState('create');
    const refresh = () => {
-      fetchData(`${global.config.BACKEND_URL}/api/users/find-all`)
+      fetchData(`${globalConfig.BACKEND_URL}/api/users/find-all`)
          .then(response => setUserlist(response))
    }
    useEffect(() => {
@@ -106,7 +107,7 @@ const UserList = () => {
                                                    </span>
                                                 </Link>{' '}
                                                 <Link onClick={async () => {
-                                                   confirmDelete(`http://localhost:3030/api/users/delete/${item._id}`, refresh)
+                                                   confirmDelete(`${globalConfig.BACKEND_URL}/api/users/delete/${item._id}`, refresh)
                                                 }} className="btn btn-sm btn-icon btn-danger" data-toggle="tooltip" data-placement="top" title="Delete" data-original-title="Delete" to="#">
                                                    <span className="btn-inner">
                                                       <svg width="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" stroke="currentColor">
