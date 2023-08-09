@@ -15,7 +15,8 @@ const urgenceSchema = new Mongoose.Schema({
     tel: Number,
     communication: String,
     police: String,
-    cloture: String
+    cloture: String,
+    other: String
 }, { timestamps: true });
 
 module.exports = urgenceSchema;

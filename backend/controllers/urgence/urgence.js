@@ -2,6 +2,7 @@ const Urgence = require('../../models/urgence/urgence');
 const { Socket } = require('../../utils/socketjs');
 const pointInPolygon = require('point-in-polygon')
 const turf = require('@turf/turf');
+const mongoose = require('mongoose')
 
 const { bizerteTunisCoordinates,
     tunisMonastirCoordinates,
@@ -11,8 +12,12 @@ const { bizerteTunisCoordinates,
     tabarkacapbonCoordinates } = require('../../utils/polygonData') // coords of areas
 
 exports.create = async (req, res) => {
-    const response = await Urgence.findOne({ latitude: req.body.latitude, longitude: req.body.longitude }) // retrieve emergencie by coords
-    if (response === null) { // if not found we create new emergencie
+    let response = null
+    if (req.body.id != null) {
+        const id = req.body.id.replace(/^"|"$/g, '');
+        response = await Urgence.findById(id)
+    }
+    if (!response) {
         const newUrgence = new Urgence({
             longitude: req.body.longitude,
             latitude: req.body.latitude,
@@ -28,14 +33,15 @@ exports.create = async (req, res) => {
             tel: req.body.tel,
             communication: req.body.communication,
             police: req.body.police,
-            cloture: 'false'
+            cloture: 'false',
+            other: req.body.other
         });
         newUrgence.save()
             .then((urgence) => {
                 Socket.emit('notification', {
                     urgence
                 });
-                res.send({ message: "Emergency was created successfully.", urgence })
+                res.send(urgence._id)
 
             })
             .catch(err => {
@@ -43,7 +49,8 @@ exports.create = async (req, res) => {
                     message: err.message || "Some error occurred."
                 });
             });
-    } else { // if we retrieve the emergencie we simply update it
+    }
+    else { // if we retrieve the emergencie we simply update it
         Urgence.findByIdAndUpdate(response._id, req.body, { useFindAndModify: false })
             .then(data => {
                 if (!data) {
@@ -276,7 +283,7 @@ function calculateEnclosed(data) {
     let counterEnclosed = 0
     let counterNotEnclosed = 0
     for (let jindex = 0; jindex < data.length; jindex++) {
-        (data[jindex] && data[jindex].cloture === 'false') ? counterEnclosed += 1 : counterNotEnclosed += 1
+        (data[jindex] && data[jindex].cloture === 'true') ? counterEnclosed += 1 : counterNotEnclosed += 1
     }
     return { counterEnclosed: counterEnclosed, counterNotEnclosed: counterNotEnclosed }
 }

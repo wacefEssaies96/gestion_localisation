@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import Card from '../../../components/Card'
-import { Row, Col, Button, Modal, Form, Table, Dropdown, ButtonGroup, FormCheck } from 'react-bootstrap'
+import { Row, Col, Button, Modal, Form, Table, Dropdown, ButtonGroup, FormCheck, Image } from 'react-bootstrap'
 import { io } from 'socket.io-client'
 import { MapContainer, Marker, TileLayer, useMap } from 'react-leaflet';
 import '../../../../node_modules/leaflet/dist/leaflet.css'
@@ -79,42 +79,39 @@ function LocationMarkers({ refresh, markers, setMarkers }) {
                             <div>
 
                             </div>
-                            {urgence.hasOwnProperty('nomprenom') &&
-                                <h5>Nom et prenom</h5>
-                            }
-                            <p>{urgence.nomprenom}</p>
                             {urgence.hasOwnProperty('tel') &&
-                                <h5>Numéro de téléphone</h5>
+                                <h5>Phone number</h5>
                             }
                             <p>{urgence.tel}</p>
-                            {urgence.hasOwnProperty('nomprenom') &&
-                                <h5>Nom et prenom</h5>
-                            }
                             <p>{urgence.nomprenom}</p>
                             {urgence.hasOwnProperty('age') &&
                                 <h5>Age</h5>
                             }
                             <p>{urgence.age}</p>
                             {urgence.hasOwnProperty('depart') &&
-                                <h5>Point de départ</h5>
+                                <h5>Starting point</h5>
                             }
                             <p>{urgence.depart}</p>
                             {urgence.hasOwnProperty('niveau') &&
-                                <h5>Niveau d'urgence</h5>
+                                <h5>Level of emergency</h5>
                             }
                             <p>{urgence.niveau}</p>
+                            {urgence.hasOwnProperty('other') &&
+                                <h5>Other informations</h5>
+                            }
+                            <p>{urgence.other}</p>
                         </div>
                         <div>
                             {urgence.hasOwnProperty('type') &&
-                                <h5>Type d'urgence</h5>
+                                <h5>Type of emergency</h5>
                             }
                             <p>{urgence.type}</p>
                             {urgence.hasOwnProperty('taille') &&
-                                <h5>Taille du bateau</h5>
+                                <h5>Boat size</h5>
                             }
                             <p>{urgence.taille}</p>
                             {urgence.hasOwnProperty('nbrpersonne') &&
-                                <h5>Nombre de personne</h5>
+                                <h5>Number of person</h5>
                             }
                             <p>{urgence.nbrpersonne}</p>
                             {urgence.hasOwnProperty('status') &&
@@ -122,7 +119,7 @@ function LocationMarkers({ refresh, markers, setMarkers }) {
                             }
                             <p>{urgence.status}</p>
                             {urgence.hasOwnProperty('distance') &&
-                                <h5>Distance de déplacement</h5>
+                                <h5>distance traveled</h5>
                             }
                             <p>{urgence.distance}</p>
                             {urgence.hasOwnProperty('communication') &&
@@ -133,6 +130,8 @@ function LocationMarkers({ refresh, markers, setMarkers }) {
                                 <h5>Police</h5>
                             }
                             <p>{urgence.police}</p>
+
+                            <Image src=''></Image>
                         </div>
                     </div>
                 </Modal.Body>
@@ -339,12 +338,12 @@ const Google = () => {
                                             <div className='col-sm-6'>
                                                 <label>Enclose</label>
                                             </div>
-                                            <div  className="col-sm-5 form-check form-switch form-check-inline">
-                                               
+                                            <div className="col-sm-5 form-check form-switch form-check-inline">
+
                                                 <FormCheck.Input onChange={() => {
                                                     setEnclosed(!enclosed)
                                                 }} type="checkbox" id="switch" />
-                                                 {enclosed === 'All' ? <label>All</label>
+                                                {enclosed === 'All' ? <label>All</label>
                                                     : enclosed === true ? <label>Not enclosed</label> : <label>Enclosed</label>
                                                 }
                                             </div>
