@@ -46,7 +46,8 @@ function LocationMarkers({ refresh, markers, setMarkers }) {
         socket.on('notification', (data) => {
             markers.push([data.urgence.longitude, data.urgence.latitude])
             setMarkers((prevValue) => [...prevValue, [data.urgence.longitude, data.urgence.latitude]]);
-            L.circle([data.urgence.longitude, data.urgence.latitude], { radius: 5000, color: "red" },).addTo(map);
+            if (data)
+                L.circle([data.urgence.longitude, data.urgence.latitude], { radius: 5000, color: "red" },).addTo(map);
             refresh()
         });
 

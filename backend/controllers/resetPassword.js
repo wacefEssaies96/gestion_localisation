@@ -1,5 +1,5 @@
 const sgMail = require('@sendgrid/mail')
-API_KEY = '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'
+API_KEY = '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'
 const User = require('../models/Users/user')
 const tokenForUser = require('../utils/tokengenerator');
 
@@ -11,7 +11,7 @@ exports.send = async (req, res) => {
     const token = tokenForUser(user) // generates new token
     user.resettoken = token // affecting token to the user
     await user.save() // saving the user
-    const link = `${req.protocol}://localhost:3000/reset-password?token=${token}` // generating link
+    const link = `${req.protocol}://vps-d7947b56.vps.ovh.net/reset-password?token=${token}` // generating link
     await sgMail.send({
       to: req.body.email,
       from: 'wacef.stratrait@gmail.com',
