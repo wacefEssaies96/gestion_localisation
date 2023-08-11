@@ -1,5 +1,5 @@
 const sgMail = require('@sendgrid/mail')
-API_KEY = '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'
+API_KEY = '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'
 const User = require('../models/Users/user')
 const tokenForUser = require('../utils/tokengenerator');
 
